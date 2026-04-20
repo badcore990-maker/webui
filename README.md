@@ -40,7 +40,7 @@ Key features:
 
 ## Screenshots
 
-<img src="./img/screencast-setup.gif">
+<img src="./img/demo.gif">
 
 ## Get Started
 
