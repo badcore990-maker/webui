@@ -1,0 +1,129 @@
+/*
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+ */
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface AccountInfo {
+  name: string;
+  isPersonal: boolean;
+}
+
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  tokenExpiresAt: number | null;
+  tokenEndpoint: string | null;
+  accounts: Record<string, AccountInfo>;
+  primaryAccountId: string | null;
+  activeAccountId: string | null;
+  apiUrl: string | null;
+  maxObjectsInGet: number;
+  maxObjectsInSet: number;
+
+  setTokens: (access: string, refresh: string, expiresIn: number, tokenEndpoint: string) => void;
+  setSession: (
+    accounts: Record<string, AccountInfo>,
+    primaryAccountId: string,
+    apiUrl: string,
+    maxObjectsInGet?: number,
+    maxObjectsInSet?: number,
+  ) => void;
+  switchAccount: (accountId: string) => void;
+  logout: () => void;
+  isAuthenticated: () => boolean;
+  isTokenExpiringSoon: () => boolean;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      tokenEndpoint: null,
+      accounts: {},
+      primaryAccountId: null,
+      activeAccountId: null,
+      apiUrl: null,
+      maxObjectsInGet: 500,
+      maxObjectsInSet: 500,
+
+      setTokens: (access, refresh, expiresIn, tokenEndpoint) => {
+        set({
+          accessToken: access,
+          refreshToken: refresh,
+          tokenExpiresAt: Date.now() + expiresIn * 1000,
+          tokenEndpoint,
+        });
+      },
+
+      setSession: (accounts, primaryAccountId, apiUrl, maxObjectsInGet, maxObjectsInSet) => {
+        set({
+          accounts,
+          primaryAccountId,
+          activeAccountId: primaryAccountId,
+          apiUrl,
+          ...(maxObjectsInGet !== undefined ? { maxObjectsInGet } : {}),
+          ...(maxObjectsInSet !== undefined ? { maxObjectsInSet } : {}),
+        });
+      },
+
+      switchAccount: (accountId) => {
+        const { accounts } = get();
+        if (accounts[accountId]) {
+          set({ activeAccountId: accountId });
+        }
+      },
+
+      logout: () => {
+        set({
+          accessToken: null,
+          refreshToken: null,
+          tokenExpiresAt: null,
+          tokenEndpoint: null,
+          accounts: {},
+          primaryAccountId: null,
+          activeAccountId: null,
+          apiUrl: null,
+        });
+      },
+
+      isAuthenticated: () => {
+        const { accessToken, tokenExpiresAt } = get();
+        return accessToken !== null && tokenExpiresAt !== null && Date.now() < tokenExpiresAt;
+      },
+
+      isTokenExpiringSoon: () => {
+        const { tokenExpiresAt } = get();
+        if (tokenExpiresAt === null) return false;
+        return tokenExpiresAt - Date.now() < 60_000;
+      },
+    }),
+    {
+      name: 'stalwart-auth',
+      storage: {
+        getItem: (name) => {
+          const value = sessionStorage.getItem(name);
+          return value ? JSON.parse(value) : null;
+        },
+        setItem: (name, value) => {
+          sessionStorage.setItem(name, JSON.stringify(value));
+        },
+        removeItem: (name) => {
+          sessionStorage.removeItem(name);
+        },
+      },
+      partialize: (state) =>
+        ({
+          accessToken: state.accessToken,
+          refreshToken: state.refreshToken,
+          tokenExpiresAt: state.tokenExpiresAt,
+          tokenEndpoint: state.tokenEndpoint,
+        }) as AuthState,
+    },
+  ),
+);

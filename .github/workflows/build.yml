@@ -1,0 +1,40 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npx eslint src/
+
+      - run: npx vitest run
+
+      - run: npm run build
+
+      - name: Create webui.zip
+        working-directory: dist
+        run: zip -r ../webui.zip .
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v3
+        with:
+          files: webui.zip
