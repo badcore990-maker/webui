@@ -11,6 +11,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSchemaStore } from '@/stores/schemaStore';
 import { resolveObject, resolveList } from '@/lib/schemaResolver';
+import { coerceLabel } from '@/lib/objectOptions';
 import { jmapGet, getAccountId } from '@/services/jmap/client';
 import { DynamicView } from './DynamicView';
 
@@ -89,7 +90,8 @@ export function DynamicViewPage({ viewName, objectId }: DynamicViewPageProps) {
 
   const list = resolveList(schema, viewName, resolved.objectName);
   const labelProp = list?.labelProperty ?? list?.columns?.[0]?.name;
-  const displayName = labelProp && typeof data[labelProp] === 'string' ? (data[labelProp] as string) : undefined;
+  const rawLabel = labelProp ? coerceLabel(data[labelProp], '') : '';
+  const displayName = rawLabel.length > 0 ? rawLabel : undefined;
   const singularName = list?.singularName ?? resolved.objectName.replace(/^x:/, '');
   const title = displayName
     ? `${singularName.charAt(0).toUpperCase() + singularName.slice(1)}: ${displayName}`

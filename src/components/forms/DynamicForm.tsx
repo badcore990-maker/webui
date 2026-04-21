@@ -47,6 +47,7 @@ import {
 import { jmapGet, jmapSet, jmapRequest, getAccountId } from '@/services/jmap/client';
 import { calculateJmapPatch } from '@/lib/jmapPatch';
 import { friendlySetError } from '@/lib/jmapErrors';
+import { coerceLabel } from '@/lib/objectOptions';
 import { toast } from '@/hooks/use-toast';
 import { logFormChange } from '@/lib/debug';
 import { FieldWidget } from '@/components/forms/FieldWidget';
@@ -695,9 +696,9 @@ export function DynamicForm({ viewName, objectId }: DynamicFormProps) {
 
     const labelProp = list?.labelProperty;
     if (labelProp) {
-      const raw = formData[labelProp];
-      if (typeof raw === 'string' && raw.length > 0) {
-        return t('form.editTitleWithValue', 'Edit {{name}}: {{value}}', { name, value: raw });
+      const value = coerceLabel(formData[labelProp], '');
+      if (value.length > 0) {
+        return t('form.editTitleWithValue', 'Edit {{name}}: {{value}}', { name, value });
       }
     }
     return t('form.editTitle', 'Edit {{name}}', { name });

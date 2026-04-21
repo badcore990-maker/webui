@@ -48,6 +48,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/component
 import { ObjectPicker } from '@/components/common/ObjectPicker';
 import { toast } from '@/hooks/use-toast';
 import { friendlySetError } from '@/lib/jmapErrors';
+import { coerceLabel } from '@/lib/objectOptions';
 
 import { useSchemaStore } from '@/stores/schemaStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -515,7 +516,7 @@ export function DynamicList({ viewName }: DynamicListProps) {
           for (const obj of list) {
             const id = obj.id as string;
             if (!id) continue;
-            entries[id] = (obj[displayProp] as string) ?? id;
+            entries[id] = coerceLabel(obj[displayProp], id);
           }
           if (Object.keys(entries).length > 0) {
             setDisplayNames(refType, entries);

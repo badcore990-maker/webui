@@ -48,8 +48,14 @@ export function ObjectPicker({ schema, objectName, value, onChange, onClear, pla
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {value && (
-        <Badge variant="secondary" className="gap-1 pr-1.5 text-sm">
-          {labelLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : (display ?? value)}
+        <Badge variant="secondary" className="gap-1 pr-1.5 text-sm max-w-xs">
+          {labelLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <span className="truncate" title={display ?? value}>
+              {display ?? value}
+            </span>
+          )}
           {onClear && (
             <button
               type="button"
@@ -121,7 +127,9 @@ export function ObjectPicker({ schema, objectName, value, onChange, onClear, pla
                         setOpen(false);
                       }}
                     >
-                      {opt.label}
+                      <span className="truncate" title={opt.label}>
+                        {opt.label}
+                      </span>
                     </CommandItem>
                   ))}
                 </CommandGroup>

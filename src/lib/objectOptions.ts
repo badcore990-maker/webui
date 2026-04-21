@@ -21,6 +21,18 @@ interface PendingBatch {
 
 const pendingByType = new Map<string, PendingBatch>();
 
+export function coerceLabel(value: unknown, fallback: string): string {
+  if (value == null) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.length > 0 ? value.map((v) => coerceLabel(v, '')).filter(Boolean).join(', ') : fallback;
+  if (typeof value === 'object') {
+    const keys = Object.keys(value as Record<string, unknown>);
+    return keys.length > 0 ? keys.join(', ') : fallback;
+  }
+  return fallback;
+}
+
 function requestObjectLabel(parentObjectName: string, viewOrObjectName: string, id: string, schema: Schema): void {
   const existing = pendingByType.get(parentObjectName);
   if (existing) {
@@ -54,7 +66,7 @@ async function executeBatch(parentObjectName: string, batch: PendingBatch): Prom
     for (const item of list) {
       const itemId = item.id as string;
       if (!itemId) continue;
-      entries[itemId] = (item[batch.displayProp] as string) ?? itemId;
+      entries[itemId] = coerceLabel(item[batch.displayProp], itemId);
     }
     for (const id of ids) {
       if (!(id in entries)) entries[id] = id;
@@ -95,7 +107,7 @@ async function fetchObjectList(viewOrObjectName: string, schema: Schema): Promis
 
   return items.map((item) => ({
     id: item.id as string,
-    label: (item[displayProp] as string) ?? (item.id as string),
+    label: coerceLabel(item[displayProp], item.id as string),
   }));
 }
 
