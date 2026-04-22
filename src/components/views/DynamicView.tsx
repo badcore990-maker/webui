@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Check, X, HelpCircle, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { jmapMapToArray } from '@/lib/jmapUtils';
+import { jmapMapToArray, SECRET_MASK } from '@/lib/jmapUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -212,7 +212,7 @@ function StringValue({ value, format }: { value: unknown; format: string }) {
     return <pre className="whitespace-pre-wrap break-all rounded bg-muted/50 p-2 text-xs font-mono">{str}</pre>;
   }
   if (format === 'secret' || format === 'secretText') {
-    return <span className="text-muted-foreground">*****</span>;
+    return <span className="text-muted-foreground">{SECRET_MASK}</span>;
   }
   return <span className="break-all">{str}</span>;
 }

@@ -13,6 +13,7 @@ import { Loader2, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SECRET_MASK } from '@/lib/jmapUtils';
 
 interface OtpAuthValue {
   otpUrl?: string | null;
@@ -24,8 +25,6 @@ interface OtpAuthFieldProps {
   onChange: (value: unknown) => void;
   readOnly: boolean;
 }
-
-const SECRET_MASK = '*****';
 
 const STALWART_IMAGE_URL = 'https://stalw.art/img/favicon-32x32.png';
 

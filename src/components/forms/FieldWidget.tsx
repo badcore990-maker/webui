@@ -41,6 +41,7 @@ import { resolveSchema, resolveVariantForm, resolveObject, buildEmbeddedDefaults
 import { useAccountStore } from '@/stores/accountStore';
 import { useEffectiveEdition } from '@/components/forms/FormEditionContext';
 import { useObjectList, useObjectLabel, useNoPermissionMessage, type ObjectOption } from '@/lib/objectOptions';
+import { SECRET_MASK } from '@/lib/jmapUtils';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { jmapGet, getAccountId } from '@/services/jmap/client';
 
@@ -457,8 +458,6 @@ interface SecretInputProps {
   multiline: boolean;
 }
 
-const SECRET_MASK = '****';
-
 function SecretInput({ value, onChange, readOnly, placeholder, minLength, maxLength, multiline }: SecretInputProps) {
   const [visible, setVisible] = useState(false);
   const [localValue, setLocalValue] = useState(() => (value === SECRET_MASK || value === '' ? '' : value));
@@ -482,6 +481,7 @@ function SecretInput({ value, onChange, readOnly, placeholder, minLength, maxLen
   };
 
   const commit = () => {
+    if (isMasked && localValue === '') return;
     if (localValue !== value) onChange(localValue);
   };
 

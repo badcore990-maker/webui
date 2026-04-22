@@ -48,6 +48,7 @@ import { jmapGet, jmapSet, jmapRequest, getAccountId } from '@/services/jmap/cli
 import { calculateJmapPatch } from '@/lib/jmapPatch';
 import { friendlySetError } from '@/lib/jmapErrors';
 import { coerceLabel } from '@/lib/objectOptions';
+import { SECRET_MASK } from '@/lib/jmapUtils';
 import { toast } from '@/hooks/use-toast';
 import { logFormChange } from '@/lib/debug';
 import { FieldWidget } from '@/components/forms/FieldWidget';
@@ -468,7 +469,7 @@ export function DynamicForm({ viewName, objectId }: DynamicFormProps) {
               const isSecret =
                 fieldDef.type.type === 'string' &&
                 (fieldDef.type.format === 'secret' || fieldDef.type.format === 'secretText');
-              if (isSecret && formData[fieldName] === '*****') continue;
+              if (isSecret && formData[fieldName] === SECRET_MASK) continue;
               createPayload[fieldName] = formData[fieldName];
             }
           }
@@ -531,7 +532,7 @@ export function DynamicForm({ viewName, objectId }: DynamicFormProps) {
           if (
             fieldDef?.type.type === 'string' &&
             (fieldDef.type.format === 'secret' || fieldDef.type.format === 'secretText') &&
-            patchValue === '*****'
+            patchValue === SECRET_MASK
           ) {
             continue;
           }
@@ -1101,8 +1102,6 @@ function buildRenderableField(
   return { formField, field, visible, enterpriseDisabled };
 }
 
-const SECRET_MASK_PLACEHOLDER = '*****';
-
 function isOtpAuthValid(data: unknown): boolean {
   if (data == null || typeof data !== 'object' || Array.isArray(data)) return true;
   const obj = data as Record<string, unknown>;
@@ -1118,7 +1117,7 @@ function isOtpAuthValid(data: unknown): boolean {
   const otpUrl = obj.otpUrl;
   const otpCode = obj.otpCode;
   if (otpUrl == null || otpUrl === '') return true;
-  if (otpCode == null || otpCode === '' || otpCode === SECRET_MASK_PLACEHOLDER) {
+  if (otpCode == null || otpCode === '' || otpCode === SECRET_MASK) {
     return false;
   }
   return true;

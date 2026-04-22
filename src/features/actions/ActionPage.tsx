@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSchemaStore } from '@/stores/schemaStore';
 import { useAccountStore } from '@/stores/accountStore';
 import { resolveObject, resolveSchema, resolveVariantForm } from '@/lib/schemaResolver';
+import { SECRET_MASK } from '@/lib/jmapUtils';
 import { jmapSet, getAccountId } from '@/services/jmap/client';
 import { FieldWidget } from '@/components/forms/FieldWidget';
 import { DynamicView } from '@/components/views/DynamicView';
@@ -104,7 +105,7 @@ export function ActionPage({ viewName }: ActionPageProps) {
           if (name in formData) {
             const isSecret =
               def.type.type === 'string' && (def.type.format === 'secret' || def.type.format === 'secretText');
-            if (isSecret && formData[name] === '*****') continue;
+            if (isSecret && formData[name] === SECRET_MASK) continue;
             payload[name] = formData[name];
           }
         }

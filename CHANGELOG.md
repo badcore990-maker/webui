@@ -9,7 +9,8 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 ### Fixed
-- Fix array label properties display.
+- Editing a secret clears its masked value.
+- Array label properties crashes app.
 
 ## [0.1.0] - 2026-04-20
 

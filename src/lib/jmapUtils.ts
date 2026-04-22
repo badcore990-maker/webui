@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
+export const SECRET_MASK = '****';
+
 export function jmapMapToArray<T>(val: unknown): T[] {
   if (Array.isArray(val)) return val as T[];
   if (val && typeof val === 'object') {
