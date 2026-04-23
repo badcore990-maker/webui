@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 ### Fixed
+- Mobile display issues.
 - Editing a secret clears its masked value.
 - Array label properties crashes app.
 

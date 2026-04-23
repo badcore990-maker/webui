@@ -7,9 +7,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as LucideIcons from 'lucide-react';
-const { Sun, Moon, User, LogOut, Check, Menu, Sparkles } = LucideIcons;
+const { Sun, Moon, User, LogOut, Check, Menu, Sparkles, Search } = LucideIcons;
 import { Button } from '@/components/ui/button';
 import { GlobalSearch } from '@/components/common/GlobalSearch';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,7 @@ export function TopBar() {
   const hasPermission = useAccountStore((s) => s.hasPermission);
   const schema = useSchemaStore((s) => s.schema);
   const [upsellOpen, setUpsellOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const navigableLayouts = schema
     ? visibleLayouts(schema, edition, (prefix) => hasObjectPermission(prefix, 'Get'), hasPermission)
@@ -68,10 +70,29 @@ export function TopBar() {
         <Logo />
       </Link>
 
-      <GlobalSearch />
+      <div className="hidden min-w-0 flex-1 items-center justify-center px-4 md:flex">
+        <GlobalSearch />
+      </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2 md:ml-0">
         {edition !== 'enterprise' && <EnterpriseUpsell open={upsellOpen} onClose={() => setUpsellOpen(false)} />}
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setMobileSearchOpen(true)}
+          aria-label={t('search', 'Search')}
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+
+        <Dialog open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
+          <DialogContent className="top-4 translate-y-0 max-w-[calc(100vw-2rem)] p-4">
+            <DialogTitle className="sr-only">{t('search', 'Search')}</DialogTitle>
+            <GlobalSearch autoFocus onAfterSelect={() => setMobileSearchOpen(false)} />
+          </DialogContent>
+        </Dialog>
 
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={t('toggleTheme', 'Toggle theme')}>
           {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}

@@ -61,7 +61,12 @@ function friendlyName(viewName: string): string {
   return parts[parts.length - 1];
 }
 
-export function GlobalSearch() {
+interface GlobalSearchProps {
+  onAfterSelect?: () => void;
+  autoFocus?: boolean;
+}
+
+export function GlobalSearch({ onAfterSelect, autoFocus }: GlobalSearchProps = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const GROUP_LABELS: Record<SearchIndexEntry['type'], string> = {
@@ -146,8 +151,9 @@ export function GlobalSearch() {
       setQuery('');
       setDebouncedQuery('');
       navigate(path);
+      onAfterSelect?.();
     },
-    [schema, navigate],
+    [schema, navigate, onAfterSelect],
   );
 
   const handleKeyDown = useCallback(
@@ -172,69 +178,68 @@ export function GlobalSearch() {
   const showDropdown = dropdownOpen && debouncedQuery.trim().length > 0;
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4" ref={containerRef}>
-      <div className="relative w-full max-w-md">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => {
-            handleQueryChange(e.target.value);
-            setDropdownOpen(true);
-          }}
-          onFocus={() => {
-            if (query.trim()) setDropdownOpen(true);
-          }}
-          onKeyDown={handleKeyDown}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        />
+    <div className="relative w-full max-w-md" ref={containerRef}>
+      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <input
+        ref={inputRef}
+        type="text"
+        value={query}
+        autoFocus={autoFocus}
+        onChange={(e) => {
+          handleQueryChange(e.target.value);
+          setDropdownOpen(true);
+        }}
+        onFocus={() => {
+          if (query.trim()) setDropdownOpen(true);
+        }}
+        onKeyDown={handleKeyDown}
+        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      />
 
-        {showDropdown && (
-          <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
-            {results.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                {t('globalSearch.noResults', 'No results found.')}
-              </div>
-            ) : (
-              <div className="max-h-80 overflow-y-auto py-1">
-                {Array.from(groups.entries()).map(([type, entries]) => (
-                  <div key={type}>
-                    <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">{GROUP_LABELS[type]}</div>
-                    {entries.map((entry) => {
-                      const flatIdx = results.indexOf(entry);
-                      const objectKind = schema ? getObjectKind(schema, entry.viewName) : null;
-                      const { label: actionLabel, Icon: ActionIcon } = getActionInfo(entry.type, objectKind, t);
+      {showDropdown && (
+        <div className="absolute top-full left-0 z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
+          {results.length === 0 ? (
+            <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+              {t('globalSearch.noResults', 'No results found.')}
+            </div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto py-1">
+              {Array.from(groups.entries()).map(([type, entries]) => (
+                <div key={type}>
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">{GROUP_LABELS[type]}</div>
+                  {entries.map((entry) => {
+                    const flatIdx = results.indexOf(entry);
+                    const objectKind = schema ? getObjectKind(schema, entry.viewName) : null;
+                    const { label: actionLabel, Icon: ActionIcon } = getActionInfo(entry.type, objectKind, t);
 
-                      return (
-                        <button
-                          key={`${type}-${entry.viewName}-${flatIdx}`}
-                          type="button"
-                          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent ${
-                            flatIdx === activeIndex ? 'bg-accent' : ''
-                          }`}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleSelect(entry);
-                          }}
-                          onMouseEnter={() => setActiveIndex(flatIdx)}
-                        >
-                          <ActionIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                          <div className="flex flex-1 flex-col overflow-hidden">
-                            <span className="truncate font-medium">{friendlyName(entry.text)}</span>
-                            <span className="truncate text-xs text-muted-foreground">{entry.breadcrumb}</span>
-                          </div>
-                          <span className="shrink-0 text-xs text-muted-foreground">{actionLabel}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                    return (
+                      <button
+                        key={`${type}-${entry.viewName}-${flatIdx}`}
+                        type="button"
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent ${
+                          flatIdx === activeIndex ? 'bg-accent' : ''
+                        }`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelect(entry);
+                        }}
+                        onMouseEnter={() => setActiveIndex(flatIdx)}
+                      >
+                        <ActionIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="flex flex-1 flex-col overflow-hidden">
+                          <span className="truncate font-medium">{friendlyName(entry.text)}</span>
+                          <span className="truncate text-xs text-muted-foreground">{entry.breadcrumb}</span>
+                        </div>
+                        <span className="shrink-0 text-xs text-muted-foreground">{actionLabel}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -10,7 +10,6 @@ import * as LucideIcons from 'lucide-react';
 const { ChevronDown, Lock } = LucideIcons;
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { EnterpriseUpsell } from '@/components/common/EnterpriseUpsell';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -262,6 +261,7 @@ export function Sidebar() {
   const activeSection = useUIStore((s) => s.activeSection);
   const setActiveSection = useUIStore((s) => s.setActiveSection);
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
   const schema = useSchemaStore((s) => s.schema);
   const edition = useAccountStore((s) => s.edition);
   const hasObjectPermission = useAccountStore((s) => s.hasObjectPermission);
@@ -282,6 +282,13 @@ export function Sidebar() {
     }
   }, [schema, layouts, activeSection, setActiveSection]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, setSidebarOpen]);
+
   if (!sidebarOpen || !schema) return null;
 
   const layout: Layout | undefined = layouts.find((l) => l.name === activeSection);
@@ -297,58 +304,65 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed top-14 left-0 bottom-0 z-30 hidden w-64 flex-col border-r bg-background md:flex">
-      <ScrollArea className="flex-1 py-2">
-        <nav className="flex flex-col gap-0.5 px-2">
-          {layout.items.map((item) => (
-            <SidebarTopItem
-              key={'link' in item ? item.link.viewName : item.container.name}
-              item={item}
-              sectionName={layout.name}
-              currentPath={location.pathname}
-              navigate={navigate}
-              edition={edition}
-              onUpsell={() => setUpsellOpen(true)}
-            />
-          ))}
-        </nav>
-      </ScrollArea>
+    <>
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 top-14 z-20 bg-black/40 md:hidden"
+        onClick={() => setSidebarOpen(false)}
+      />
+      <aside className="fixed top-14 left-0 bottom-0 z-30 flex w-64 flex-col border-r bg-background">
+        <div className="flex-1 overflow-y-auto py-2 [scrollbar-width:thin]">
+          <nav className="flex flex-col gap-0.5 px-2">
+            {layout.items.map((item) => (
+              <SidebarTopItem
+                key={'link' in item ? item.link.viewName : item.container.name}
+                item={item}
+                sectionName={layout.name}
+                currentPath={location.pathname}
+                navigate={navigate}
+                edition={edition}
+                onUpsell={() => setUpsellOpen(true)}
+              />
+            ))}
+          </nav>
+        </div>
 
-      {layouts.length > 1 && (
-        <TooltipProvider>
-          <div className="flex items-center justify-around border-t bg-background px-2 py-2">
-            {layouts.map((target) => {
-              const Icon = (LucideIcons as Record<string, unknown>)[
-                target.icon
-                  .split('-')
-                  .map((s) => s[0].toUpperCase() + s.slice(1))
-                  .join('')
-              ] as LucideIcons.LucideIcon | undefined;
-              const isActive = target.name === activeSection;
-              return (
-                <Tooltip key={target.name}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={target.name}
-                      aria-current={isActive ? 'page' : undefined}
-                      onClick={() => handleSectionClick(target)}
-                      className={cn('h-9 w-9', isActive && 'bg-accent text-accent-foreground')}
-                    >
-                      {Icon ? <Icon className="h-4 w-4" /> : <LucideIcons.Circle className="h-4 w-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">{target.name}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </TooltipProvider>
-      )}
+        {layouts.length > 1 && (
+          <TooltipProvider>
+            <div className="flex items-center justify-around border-t bg-background px-2 py-2">
+              {layouts.map((target) => {
+                const Icon = (LucideIcons as Record<string, unknown>)[
+                  target.icon
+                    .split('-')
+                    .map((s) => s[0].toUpperCase() + s.slice(1))
+                    .join('')
+                ] as LucideIcons.LucideIcon | undefined;
+                const isActive = target.name === activeSection;
+                return (
+                  <Tooltip key={target.name}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={target.name}
+                        aria-current={isActive ? 'page' : undefined}
+                        onClick={() => handleSectionClick(target)}
+                        className={cn('h-9 w-9', isActive && 'bg-accent text-accent-foreground')}
+                      >
+                        {Icon ? <Icon className="h-4 w-4" /> : <LucideIcons.Circle className="h-4 w-4" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{target.name}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </TooltipProvider>
+        )}
 
-      <EnterpriseUpsell open={upsellOpen} onClose={() => setUpsellOpen(false)} />
-    </aside>
+        <EnterpriseUpsell open={upsellOpen} onClose={() => setUpsellOpen(false)} />
+      </aside>
+    </>
   );
 }

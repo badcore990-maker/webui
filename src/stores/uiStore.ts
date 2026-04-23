@@ -34,7 +34,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       theme:
         typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-      sidebarOpen: true,
+      sidebarOpen: typeof window !== 'undefined' ? (window.matchMedia?.('(min-width: 768px)').matches ?? true) : true,
       activeSection: '',
 
       toggleTheme: () => {

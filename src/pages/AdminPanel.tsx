@@ -248,7 +248,7 @@ export default function AdminPanel() {
       <div className="flex flex-1">
         <Sidebar />
         <main
-          className={`flex-1 overflow-auto bg-content-background p-6 transition-all ${sidebarOpen ? 'md:ml-64' : ''}`}
+          className={`flex-1 overflow-auto bg-content-background p-6 transition-[margin] ${sidebarOpen ? 'md:ml-64' : ''}`}
         >
           <ErrorBoundary>
             <MainContent viewName={viewName} id={id} section={section} />
