@@ -24,6 +24,7 @@ import { EnterpriseUpsell } from '@/components/common/EnterpriseUpsell';
 import { findFirstAccessibleLinkInLayout, findFirstVisibleLinkInLayout, visibleLayouts } from '@/lib/layout';
 import { useUIStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
+import { buildEndSessionUrl, getPostLogoutRedirectUri } from '@/services/auth/oauth';
 import { useState } from 'react';
 import { useAccountStore } from '@/stores/accountStore';
 import { useSchemaStore } from '@/stores/schemaStore';
@@ -140,8 +141,13 @@ export function TopBar() {
 
             <DropdownMenuItem
               onClick={() => {
+                const endSessionEndpoint = useAuthStore.getState().endSessionEndpoint;
                 logout();
-                navigate('/login');
+                if (endSessionEndpoint) {
+                  window.location.href = buildEndSessionUrl(endSessionEndpoint, getPostLogoutRedirectUri());
+                } else {
+                  navigate('/login');
+                }
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />

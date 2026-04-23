@@ -35,7 +35,7 @@ export default function OAuthCallback() {
           throw new Error(t('oauth.missingParams', 'Missing authorization code or state parameter'));
         }
 
-        const { codeVerifier, tokenEndpoint, state, returnUrl } = getStoredOAuthData();
+        const { codeVerifier, tokenEndpoint, state, returnUrl, endSessionEndpoint } = getStoredOAuthData();
 
         if (!state || state !== stateParam) {
           throw new Error(t('oauth.stateMismatch', 'State parameter mismatch. Please try logging in again.'));
@@ -50,7 +50,13 @@ export default function OAuthCallback() {
 
         useAuthStore
           .getState()
-          .setTokens(tokenResponse.access_token, tokenResponse.refresh_token, tokenResponse.expires_in, tokenEndpoint);
+          .setTokens(
+            tokenResponse.access_token,
+            tokenResponse.refresh_token,
+            tokenResponse.expires_in,
+            tokenEndpoint,
+            endSessionEndpoint,
+          );
 
         clearStoredOAuthData();
 

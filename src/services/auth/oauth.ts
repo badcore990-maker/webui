@@ -16,6 +16,7 @@ const SESSION_PREFIX = 'stalwart-oauth-';
 interface DiscoveryResponse {
   authorization_endpoint: string;
   token_endpoint: string;
+  end_session_endpoint?: string;
 }
 
 export async function discover(username: string): Promise<DiscoveryResponse> {
@@ -123,7 +124,7 @@ function getRedirectUri(): string {
 }
 
 export async function startAuthFlow(username: string, returnUrl?: string | null): Promise<void> {
-  const { authorization_endpoint, token_endpoint } = await discover(username);
+  const { authorization_endpoint, token_endpoint, end_session_endpoint } = await discover(username);
 
   const codeVerifier = generateCodeVerifier();
   const { challenge: codeChallenge, method: codeChallengeMethod } = await generateCodeChallenge(codeVerifier);
@@ -143,6 +144,11 @@ export async function startAuthFlow(username: string, returnUrl?: string | null)
   sessionStorage.setItem(`${SESSION_PREFIX}token_endpoint`, token_endpoint);
   sessionStorage.setItem(`${SESSION_PREFIX}state`, state);
   sessionStorage.setItem(`${SESSION_PREFIX}return_url`, safeReturnUrl);
+  if (end_session_endpoint) {
+    sessionStorage.setItem(`${SESSION_PREFIX}end_session_endpoint`, end_session_endpoint);
+  } else {
+    sessionStorage.removeItem(`${SESSION_PREFIX}end_session_endpoint`);
+  }
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -152,6 +158,7 @@ export async function startAuthFlow(username: string, returnUrl?: string | null)
     code_challenge_method: codeChallengeMethod,
     state,
     login_hint: username,
+    prompt: 'login',
   });
 
   if (SCOPES && SCOPES.length > 0) {
@@ -167,6 +174,7 @@ export function getStoredOAuthData() {
     tokenEndpoint: sessionStorage.getItem(`${SESSION_PREFIX}token_endpoint`),
     state: sessionStorage.getItem(`${SESSION_PREFIX}state`),
     returnUrl: sessionStorage.getItem(`${SESSION_PREFIX}return_url`),
+    endSessionEndpoint: sessionStorage.getItem(`${SESSION_PREFIX}end_session_endpoint`),
   };
 }
 
@@ -175,8 +183,23 @@ export function clearStoredOAuthData(): void {
   sessionStorage.removeItem(`${SESSION_PREFIX}token_endpoint`);
   sessionStorage.removeItem(`${SESSION_PREFIX}state`);
   sessionStorage.removeItem(`${SESSION_PREFIX}return_url`);
+  sessionStorage.removeItem(`${SESSION_PREFIX}end_session_endpoint`);
 }
 
 export function getOAuthRedirectUri(): string {
   return getRedirectUri();
+}
+
+export function getPostLogoutRedirectUri(): string {
+  const basePath = getBasePath();
+  return `${window.location.origin}${basePath}/login`;
+}
+
+export function buildEndSessionUrl(endSessionEndpoint: string, postLogoutRedirectUri: string): string {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    post_logout_redirect_uri: postLogoutRedirectUri,
+  });
+  const sep = endSessionEndpoint.includes('?') ? '&' : '?';
+  return `${endSessionEndpoint}${sep}${params.toString()}`;
 }

@@ -17,6 +17,7 @@ interface AuthState {
   refreshToken: string | null;
   tokenExpiresAt: number | null;
   tokenEndpoint: string | null;
+  endSessionEndpoint: string | null;
   accounts: Record<string, AccountInfo>;
   primaryAccountId: string | null;
   activeAccountId: string | null;
@@ -24,7 +25,13 @@ interface AuthState {
   maxObjectsInGet: number;
   maxObjectsInSet: number;
 
-  setTokens: (access: string, refresh: string, expiresIn: number, tokenEndpoint: string) => void;
+  setTokens: (
+    access: string,
+    refresh: string,
+    expiresIn: number,
+    tokenEndpoint: string,
+    endSessionEndpoint?: string | null,
+  ) => void;
   setSession: (
     accounts: Record<string, AccountInfo>,
     primaryAccountId: string,
@@ -45,6 +52,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       tokenExpiresAt: null,
       tokenEndpoint: null,
+      endSessionEndpoint: null,
       accounts: {},
       primaryAccountId: null,
       activeAccountId: null,
@@ -52,12 +60,13 @@ export const useAuthStore = create<AuthState>()(
       maxObjectsInGet: 500,
       maxObjectsInSet: 500,
 
-      setTokens: (access, refresh, expiresIn, tokenEndpoint) => {
+      setTokens: (access, refresh, expiresIn, tokenEndpoint, endSessionEndpoint) => {
         set({
           accessToken: access,
           refreshToken: refresh,
           tokenExpiresAt: Date.now() + expiresIn * 1000,
           tokenEndpoint,
+          endSessionEndpoint: endSessionEndpoint ?? null,
         });
       },
 
@@ -85,6 +94,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           tokenExpiresAt: null,
           tokenEndpoint: null,
+          endSessionEndpoint: null,
           accounts: {},
           primaryAccountId: null,
           activeAccountId: null,
@@ -123,6 +133,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: state.refreshToken,
           tokenExpiresAt: state.tokenExpiresAt,
           tokenEndpoint: state.tokenEndpoint,
+          endSessionEndpoint: state.endSessionEndpoint,
         }) as AuthState,
     },
   ),
