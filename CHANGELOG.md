@@ -2,10 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.1.1] - 2026-04-XX
+## [1.0.1] - 2026-04-25
 
 ### Added
-- Logout users from OIDC provider when logging out of the app.
+- OIDC:
+    - Logout users from IdP when logging out of the app.
+    - Include `openid` scope in OIDC authentication requests.
 
 ### Changed
 
@@ -14,7 +16,7 @@ All notable changes to this project will be documented in this file. This projec
 - Editing a secret clears its masked value.
 - Array label properties crashes app.
 
-## [0.1.0] - 2026-04-20
+## [1.0.0] - 2026-04-20
 
 ### Added
 - Initial release.

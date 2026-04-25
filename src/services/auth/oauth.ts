@@ -17,6 +17,7 @@ interface DiscoveryResponse {
   authorization_endpoint: string;
   token_endpoint: string;
   end_session_endpoint?: string;
+  scopes_supported?: string[];
 }
 
 export async function discover(username: string): Promise<DiscoveryResponse> {
@@ -124,7 +125,8 @@ function getRedirectUri(): string {
 }
 
 export async function startAuthFlow(username: string, returnUrl?: string | null): Promise<void> {
-  const { authorization_endpoint, token_endpoint, end_session_endpoint } = await discover(username);
+  const { authorization_endpoint, token_endpoint, end_session_endpoint, scopes_supported } =
+    await discover(username);
 
   const codeVerifier = generateCodeVerifier();
   const { challenge: codeChallenge, method: codeChallengeMethod } = await generateCodeChallenge(codeVerifier);
@@ -161,8 +163,14 @@ export async function startAuthFlow(username: string, returnUrl?: string | null)
     prompt: 'login',
   });
 
-  if (SCOPES && SCOPES.length > 0) {
-    params.set('scope', SCOPES);
+  const scope =
+    SCOPES && SCOPES.length > 0
+      ? SCOPES
+      : scopes_supported?.includes('openid')
+        ? 'openid'
+        : '';
+  if (scope) {
+    params.set('scope', scope);
   }
 
   window.location.href = `${authorization_endpoint}?${params.toString()}`;
