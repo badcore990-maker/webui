@@ -305,12 +305,17 @@
     "tokenExchangeFailed": "Token exchange failed: {{status}} {{statusText}}"
   },
   "otp": {
+    "clipboardBlocked": "Your browser blocked clipboard access.",
     "codeIncorrect": "That code is incorrect. Make sure your authenticator clock is in sync.",
     "confirmationCodeLabel": "Confirmation code",
+    "copyFailed": "Copy failed",
+    "copySecret": "Copy secret",
     "currentCodeLabel": "Current code",
     "currentCodePrompt": "Enter your current 6-digit code to authorise any change to this account (including disabling two-factor authentication).",
     "disable": "Disable",
     "enterCodePrompt": "Enter the code shown in your authenticator.",
+    "manualEntryDescription": "If you cannot scan the QR code, enter this secret into your authenticator app instead.",
+    "manualEntryLabel": "Or enter this code manually",
     "qrCodeAlt": "TOTP QR code",
     "scanDescription": "Scan the QR code below with Google Authenticator, 1Password, Authy, or any other TOTP app, then enter the 6-digit code it shows to confirm setup.",
     "scanPrompt": "Scan with your authenticator app",

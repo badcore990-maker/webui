@@ -8,11 +8,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
-import { Loader2, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Check, Copy, Loader2, ShieldCheck, ShieldOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 import { SECRET_MASK } from '@/lib/jmapUtils';
 
 interface OtpAuthValue {
@@ -56,6 +57,27 @@ export function OtpAuthField({ value, onChange, readOnly }: OtpAuthFieldProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [setupCode, setSetupCode] = useState('');
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [secretCopied, setSecretCopied] = useState(false);
+
+  const setupSecret = useMemo(() => {
+    if (!setupTotp) return null;
+    return setupTotp.secret.base32.replace(/(.{4})/g, '$1 ').trim();
+  }, [setupTotp]);
+
+  const copySecret = async () => {
+    if (!setupTotp) return;
+    try {
+      await navigator.clipboard.writeText(setupTotp.secret.base32);
+      setSecretCopied(true);
+      setTimeout(() => setSecretCopied(false), 1500);
+    } catch {
+      toast({
+        title: t('otp.copyFailed', 'Copy failed'),
+        description: t('otp.clipboardBlocked', 'Your browser blocked clipboard access.'),
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     if (!setupUrl) return;
@@ -96,6 +118,7 @@ export function OtpAuthField({ value, onChange, readOnly }: OtpAuthFieldProps) {
     setSetupTotp(null);
     setSetupUrl(null);
     setSetupCode('');
+    setSecretCopied(false);
   };
 
   const cancelSetup = () => {
@@ -103,6 +126,7 @@ export function OtpAuthField({ value, onChange, readOnly }: OtpAuthFieldProps) {
     setSetupUrl(null);
     setSetupCode('');
     setSetupError(null);
+    setSecretCopied(false);
   };
 
   const otpCodeValue = useMemo(
@@ -155,6 +179,29 @@ export function OtpAuthField({ value, onChange, readOnly }: OtpAuthFieldProps) {
             </div>
           )}
         </div>
+        {setupSecret && (
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium">{t('otp.manualEntryLabel', 'Or enter this code manually')}</Label>
+            <p className="text-xs text-muted-foreground">
+              {t(
+                'otp.manualEntryDescription',
+                'If you cannot scan the QR code, enter this secret into your authenticator app instead.',
+              )}
+            </p>
+            <div className="flex gap-2">
+              <code className="flex-1 rounded bg-muted p-2 text-sm font-mono break-all select-all">{setupSecret}</code>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copySecret}
+                aria-label={t('otp.copySecret', 'Copy secret')}
+              >
+                {secretCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label className="text-sm font-medium">{t('otp.confirmationCodeLabel', 'Confirmation code')}</Label>
           <Input

@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file. This projec
 ### Added
 - OIDC:
     - Include `email` and `profile` scopes in OIDC authentication requests.
+- TOTP:
+    - Add "Copy Secret" button to TOTP setup flow.
 
 ### Changed
 
