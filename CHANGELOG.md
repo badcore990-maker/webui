@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.2] - 2026-04-30
+
+### Added
+- OIDC:
+    - Include `email` and `profile` scopes in OIDC authentication requests.
+
+### Changed
+
+### Fixed
+
 ## [1.0.1] - 2026-04-25
 
 ### Added

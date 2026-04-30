@@ -163,12 +163,14 @@ export async function startAuthFlow(username: string, returnUrl?: string | null)
     prompt: 'login',
   });
 
-  const scope =
-    SCOPES && SCOPES.length > 0
-      ? SCOPES
-      : scopes_supported?.includes('openid')
-        ? 'openid'
-        : '';
+  let scope: string;
+  if (SCOPES && SCOPES.length > 0) {
+    scope = SCOPES;
+  } else if (scopes_supported?.includes('openid')) {
+    scope = ['openid', 'email', 'profile'].filter((s) => scopes_supported.includes(s)).join(' ');
+  } else {
+    scope = '';
+  }
   if (scope) {
     params.set('scope', scope);
   }
