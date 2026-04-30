@@ -4,8 +4,26 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-import type { JmapSetError } from '@/types/jmap';
+import type { JmapSetError, ValidationError } from '@/types/jmap';
 import i18n from '@/i18n';
+
+export function validationErrorMessage(ve: ValidationError): string {
+  switch (ve.type) {
+    case 'Required':
+      return i18n.t('form.required', 'This field is required.');
+    case 'MaxLength':
+      return i18n.t('form.maxLengthIs', 'Maximum length is {{max}}.', { max: ve.required });
+    case 'MinLength':
+      return i18n.t('form.minLengthIs', 'Minimum length is {{min}}.', { min: ve.required });
+    case 'MaxValue':
+      return i18n.t('form.maxValueIs', 'Maximum value is {{max}}.', { max: ve.required });
+    case 'MinValue':
+      return i18n.t('form.minValueIs', 'Minimum value is {{min}}.', { min: ve.required });
+    default:
+      if (ve.value && ve.value.length > 0) return ve.value;
+      return i18n.t('form.invalidValue', 'Invalid value.');
+  }
+}
 
 export function friendlySetError(err: JmapSetError): string {
   if (err.description) return err.description;

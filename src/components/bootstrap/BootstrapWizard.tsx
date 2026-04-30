@@ -19,7 +19,7 @@ import { toast } from '@/hooks/use-toast';
 import { resolveObject, resolveSchema, resolveForm, buildCreateDefaults, deepMerge } from '@/lib/schemaResolver';
 import { calculateJmapPatch } from '@/lib/jmapPatch';
 import { jmapGet, jmapSet, getAccountId } from '@/services/jmap/client';
-import { friendlySetError } from '@/lib/jmapErrors';
+import { friendlySetError, validationErrorMessage } from '@/lib/jmapErrors';
 
 import type { Field, Fields, Form, FormField } from '@/types/schema';
 import type { JmapSetError, JmapSetResponse } from '@/types/jmap';
@@ -181,19 +181,7 @@ export function BootstrapWizard() {
         for (const ve of error.validationErrors) {
           const top = ve.property?.split('/')[0] ?? '';
           if (!top) continue;
-          const msg =
-            ve.type === 'Required'
-              ? t('form.required', 'This field is required.')
-              : ve.type === 'MaxLength'
-                ? t('form.maxLengthIs', 'Maximum length is {{max}}.', { max: ve.required })
-                : ve.type === 'MinLength'
-                  ? t('form.minLengthIs', 'Minimum length is {{min}}.', { min: ve.required })
-                  : ve.type === 'MaxValue'
-                    ? t('form.maxValueIs', 'Maximum value is {{max}}.', { max: ve.required })
-                    : ve.type === 'MinValue'
-                      ? t('form.minValueIs', 'Minimum value is {{min}}.', { min: ve.required })
-                      : t('form.invalidValue', 'Invalid value.');
-          record(top, msg);
+          record(top, validationErrorMessage(ve));
         }
       }
 

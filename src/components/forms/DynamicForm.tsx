@@ -46,7 +46,7 @@ import {
 } from '@/lib/schemaResolver';
 import { jmapGet, jmapSet, jmapRequest, getAccountId } from '@/services/jmap/client';
 import { calculateJmapPatch } from '@/lib/jmapPatch';
-import { friendlySetError } from '@/lib/jmapErrors';
+import { friendlySetError, validationErrorMessage } from '@/lib/jmapErrors';
 import { coerceLabel } from '@/lib/objectOptions';
 import { SECRET_MASK } from '@/lib/jmapUtils';
 import { toast } from '@/hooks/use-toast';
@@ -347,21 +347,12 @@ export function DynamicForm({ viewName, objectId }: DynamicFormProps) {
       if (error.validationErrors && error.validationErrors.length > 0) {
         for (const ve of error.validationErrors) {
           if (ve.property && currentFields?.properties[ve.property]) {
-            const msg =
-              ve.type === 'Required'
-                ? t('form.required', 'This field is required.')
-                : ve.type === 'MaxLength'
-                  ? t('form.maxLengthIs', 'Maximum length is {{max}}.', { max: ve.required })
-                  : ve.type === 'MinLength'
-                    ? t('form.minLengthIs', 'Minimum length is {{min}}.', { min: ve.required })
-                    : ve.type === 'MaxValue'
-                      ? t('form.maxValueIs', 'Maximum value is {{max}}.', { max: ve.required })
-                      : ve.type === 'MinValue'
-                        ? t('form.minValueIs', 'Minimum value is {{min}}.', { min: ve.required })
-                        : t('form.invalidValue', 'Invalid value.');
-            newFieldErrors[ve.property] = msg;
+            newFieldErrors[ve.property] = validationErrorMessage(ve);
           } else if (ve.property) {
-            setGeneralError((prev) => (prev ? `${prev}\n${ve.property}: ${ve.type}` : `${ve.property}: ${ve.type}`));
+            const detail = ve.value && ve.value.length > 0 ? ve.value : ve.type;
+            setGeneralError((prev) =>
+              prev ? `${prev}\n${ve.property}: ${detail}` : `${ve.property}: ${detail}`,
+            );
           }
         }
       }

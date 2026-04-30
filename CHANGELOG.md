@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 ### Fixed
+- Display validation errors returned by the server.
 
 ## [1.0.1] - 2026-04-25
 

@@ -60,6 +60,6 @@ export interface JmapSetError {
 export interface ValidationError {
   type: 'Invalid' | 'Required' | 'MaxLength' | 'MinLength' | 'MaxValue' | 'MinValue';
   property: string;
-  value?: unknown;
+  value?: string;
   required?: number;
 }
