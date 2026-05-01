@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.3] - 2026-05-XX
+
+### Added
+
+### Changed
+
+### Fixed
+- Broken "Delivery History" link on OSS/Community editions.
+
 ## [1.0.2] - 2026-04-30
 
 ### Added

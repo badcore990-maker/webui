@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   Filter,
   Loader2,
+  Lock,
   Search,
   RotateCcw,
 } from 'lucide-react';
@@ -46,6 +47,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { ObjectPicker } from '@/components/common/ObjectPicker';
+import { EnterpriseUpsell } from '@/components/common/EnterpriseUpsell';
 import { toast } from '@/hooks/use-toast';
 import { friendlySetError } from '@/lib/jmapErrors';
 import { coerceLabel } from '@/lib/objectOptions';
@@ -319,6 +321,8 @@ export function DynamicList({ viewName }: DynamicListProps) {
   const schema = useSchemaStore((s) => s.schema);
   const viewToSection = useSchemaStore((s) => s.viewToSection);
   const hasObjectPermission = useAccountStore((s) => s.hasObjectPermission);
+  const edition = useAccountStore((s) => s.edition);
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   const resolved = useMemo(() => {
     if (!schema) return null;
@@ -1020,17 +1024,20 @@ export function DynamicList({ viewName }: DynamicListProps) {
   function renderItemActions(item: Record<string, unknown>): React.ReactNode {
     if (!hasItemActions || !list.itemActions) return null;
 
-    const filteredActions = list.itemActions.filter((action) => {
-      if (action.type === 'separator') return true;
-      if (action.type === 'delete') return canDelete;
-      if (action.type === 'setProperty') return canUpdate;
+    const filteredActions = list.itemActions.flatMap((action): { action: ItemAction; locked: boolean }[] => {
+      if (action.type === 'separator') return [{ action, locked: false }];
+      if (action.type === 'delete') return canDelete ? [{ action, locked: false }] : [];
+      if (action.type === 'setProperty') return canUpdate ? [{ action, locked: false }] : [];
       if (action.type === 'view' || action.type === 'query') {
         const targetObj = resolveObject(schema!, action.objectName);
-        if (targetObj && !hasObjectPermission(targetObj.permissionPrefix, 'Get')) {
-          return false;
+        if (!targetObj) return [];
+        if (targetObj.enterprise) {
+          if (edition === 'oss') return [];
+          if (edition === 'community') return [{ action, locked: true }];
         }
+        if (!hasObjectPermission(targetObj.permissionPrefix, 'Get')) return [];
       }
-      return true;
+      return [{ action, locked: false }];
     });
 
     if (filteredActions.length === 0) return null;
@@ -1043,7 +1050,7 @@ export function DynamicList({ viewName }: DynamicListProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {filteredActions.map((action, idx) => {
+          {filteredActions.map(({ action, locked }, idx) => {
             if (action.type === 'separator') {
               return <DropdownMenuSeparator key={`sep-${idx}`} />;
             }
@@ -1057,7 +1064,9 @@ export function DynamicList({ viewName }: DynamicListProps) {
                 className={isDestructive ? 'text-destructive' : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (needsConfirmation) {
+                  if (locked) {
+                    setUpsellOpen(true);
+                  } else if (needsConfirmation) {
                     setConfirmAction({
                       label: action.label,
                       onConfirm: () => executeItemAction(action, item),
@@ -1068,6 +1077,7 @@ export function DynamicList({ viewName }: DynamicListProps) {
                 }}
               >
                 {action.label}
+                {locked && <Lock className="ml-auto h-3 w-3 text-muted-foreground" />}
               </DropdownMenuItem>
             );
           })}
@@ -1352,6 +1362,8 @@ export function DynamicList({ viewName }: DynamicListProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EnterpriseUpsell open={upsellOpen} onClose={() => setUpsellOpen(false)} />
     </div>
   );
 }
