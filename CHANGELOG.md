@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Fixed
 - Broken "Delivery History" link on OSS/Community editions.
+- Resolve object ids in map keys.
 
 ## [1.0.2] - 2026-04-30
 

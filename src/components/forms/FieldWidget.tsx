@@ -1979,6 +1979,29 @@ function ObjectIdMultiSelectPill({
   );
 }
 
+function MapEntryKeyLabel({ keyClass, keyValue, schema }: { keyClass: ScalarType; keyValue: string; schema: Schema }) {
+  if (keyClass.type === 'enum') {
+    const variants = schema.enums[keyClass.enumName] ?? [];
+    const variant = variants.find((v) => v.name === keyValue);
+    return <>{variant?.label ?? keyValue}</>;
+  }
+  if (keyClass.type === 'objectId') {
+    return <ObjectIdKeyLabel objectName={keyClass.objectName} keyValue={keyValue} schema={schema} />;
+  }
+  return <>{keyValue}</>;
+}
+
+function ObjectIdKeyLabel({ objectName, keyValue, schema }: { objectName: string; keyValue: string; schema: Schema }) {
+  const list = useObjectList(objectName, schema);
+  const fromList = list.options.find((o) => o.id === keyValue)?.label;
+  const { label: cheapLabel, loading } = useObjectLabel(objectName, fromList ? null : keyValue, schema);
+  const display = fromList ?? cheapLabel;
+  if (loading && !display) {
+    return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+  }
+  return <>{display ?? keyValue}</>;
+}
+
 interface MapFieldProps {
   keyClass: ScalarType;
   valueClass: MapValueType;
@@ -2038,15 +2061,6 @@ function MapField({ keyClass, valueClass, value, onChange, readOnly, schema, min
     }
   };
 
-  const getKeyLabel = (key: string): string => {
-    if (keyClass.type === 'enum') {
-      const variants = schema.enums[keyClass.enumName] ?? [];
-      const variant = variants.find((v) => v.name === key);
-      if (variant) return variant.label;
-    }
-    return key;
-  };
-
   const existingKeys = new Set(Object.keys(mapValue));
 
   return (
@@ -2063,7 +2077,7 @@ function MapField({ keyClass, valueClass, value, onChange, readOnly, schema, min
                       className="flex flex-1 items-center gap-2 p-3 text-sm font-medium hover:bg-accent/50 rounded-t-md transition-colors [&[data-state=closed]>svg]:rotate-0 [&[data-state=open]>svg]:rotate-90"
                     >
                       <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                      {getKeyLabel(key)}
+                      <MapEntryKeyLabel keyClass={keyClass} keyValue={key} schema={schema} />
                     </button>
                   </CollapsibleTrigger>
                   {!readOnly && (

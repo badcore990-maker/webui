@@ -6,15 +6,16 @@
 
 import { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Check, X, HelpCircle, ChevronRight } from 'lucide-react';
+import { Check, X, HelpCircle, ChevronRight, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { jmapMapToArray, SECRET_MASK } from '@/lib/jmapUtils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { resolveSchema, resolveVariantForm, resolveForm } from '@/lib/schemaResolver';
+import { useObjectList, useObjectLabel } from '@/lib/objectOptions';
 import { formatSize, formatDuration } from '@/lib/durationFormat';
-import type { Schema, Field, FieldType, FormField, Form, Fields, EnumVariant } from '@/types/schema';
+import type { Schema, Field, FieldType, FormField, Form, Fields, EnumVariant, ScalarType } from '@/types/schema';
 
 export interface DynamicViewProps {
   schema: Schema;
@@ -401,7 +402,7 @@ function MapValue({
   schema,
 }: {
   value: unknown;
-  keyClass: { type: string; enumName?: string };
+  keyClass: ScalarType;
   valueClass: { type: string; objectName?: string };
   schema: Schema;
 }) {
@@ -417,12 +418,7 @@ function MapValue({
   return (
     <div className="space-y-2">
       {entries.map(([k, v]) => {
-        let keyLabel = k;
-        if (keyClass.type === 'enum' && keyClass.enumName) {
-          const variants = schema.enums[keyClass.enumName] ?? [];
-          const variant = variants.find((e: EnumVariant) => e.name === k);
-          if (variant) keyLabel = variant.label;
-        }
+        const keyLabel = <MapKeyLabel keyClass={keyClass} keyValue={k} schema={schema} />;
 
         if (valueClass.type === 'object' && valueClass.objectName) {
           return (
@@ -444,6 +440,29 @@ function MapValue({
       })}
     </div>
   );
+}
+
+function MapKeyLabel({ keyClass, keyValue, schema }: { keyClass: ScalarType; keyValue: string; schema: Schema }) {
+  if (keyClass.type === 'enum') {
+    const variants = schema.enums[keyClass.enumName] ?? [];
+    const variant = variants.find((e: EnumVariant) => e.name === keyValue);
+    return <>{variant?.label ?? keyValue}</>;
+  }
+  if (keyClass.type === 'objectId') {
+    return <ObjectIdKeyLabel objectName={keyClass.objectName} keyValue={keyValue} schema={schema} />;
+  }
+  return <>{keyValue}</>;
+}
+
+function ObjectIdKeyLabel({ objectName, keyValue, schema }: { objectName: string; keyValue: string; schema: Schema }) {
+  const list = useObjectList(objectName, schema);
+  const fromList = list.options.find((o) => o.id === keyValue)?.label;
+  const { label: cheapLabel, loading } = useObjectLabel(objectName, fromList ? null : keyValue, schema);
+  const display = fromList ?? cheapLabel;
+  if (loading && !display) {
+    return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />;
+  }
+  return <>{display ?? keyValue}</>;
 }
 
 function FieldTooltip({ description }: { description: string }) {
