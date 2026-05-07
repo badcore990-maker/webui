@@ -11,7 +11,7 @@ import { CircleDot, CircleX, Clock } from 'lucide-react';
 import { useSchemaStore } from '@/stores/schemaStore';
 import type { TraceEvent, TraceKeyValue, TraceValue } from '../types';
 
-const BASE32_ALPHABET = 'abcdefghijklmnopqrstuvwxyz234567';
+const BASE32_ALPHABET = 'abcdefghijklmnopqrstuvwxyz792013';
 
 function intToBase32(input: number | string): string {
   let n: bigint;

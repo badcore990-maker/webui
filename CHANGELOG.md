@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.4] - 2026-05-XX
+
+### Added
+
+### Changed
+
+### Fixed
+- Align `base32` alphabet with the server.
+
 ## [1.0.3] - 2026-05-05
 
 ### Added
